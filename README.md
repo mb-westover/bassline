@@ -68,3 +68,7 @@ node scripts/check.mjs
 ```
 
 No `npm install` is required. The checks use a simulated browser/audio environment to verify score data and transport behavior; they do not replace trying the microphone on real hardware.
+
+## License
+
+The code is licensed under [CC BY-NC 4.0](LICENSE.txt): free to use, share and adapt with attribution, but not for commercial purposes. The scores in `scores/` are not covered by that license; `NOTICE.md` records each one's source and status.
