@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Bassline · Find your voice</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand"><span>𝄢</span>bassline</div>
+      <small>A little practice. A stronger voice.</small>
+    </header>
+    <main>
+      <div class="eyebrow">Your sight-singing studio</div>
+      <h1>Find your place in the harmony.</h1>
+      <p class="intro">
+        Learn to read and sing a bass line, one phrase at a time. Hear your
+        starting note, then let your voice lead.
+      </p>
+      <div class="layout">
+        <section>
+          <div class="card">
+            <div class="topline">
+              <h2 id="exercise">Stepwise · C major</h2>
+              <span class="badge" id="progress">Note 1 of 4</span>
+            </div>
+            <div class="controls">
+              <button id="startNote">♫ Starting note</button
+              ><button class="primary" id="listen">● Start singing</button
+              ><button id="replay">Hear phrase</button
+              ><button id="next">New phrase →</button>
+            </div>
+            <div class="hint" id="hint">
+              Read the notes from left to right. Hold each note for about half a
+              second.
+            </div>
+            <div class="feedback" role="status" aria-live="polite">
+              <strong id="message">Your starting note is C3.</strong
+              ><small id="detail"
+                >Play the starting note, then start singing when you’re
+                ready.</small
+              >
+            </div>
+            <div class="pitch">
+              <span>Live pitch: <b id="pitch">—</b></span
+              ><span id="cents">Microphone off</span>
+            </div>
+            <div class="meter"><span id="meter"></span></div>
+            <div class="score-scroll" style="overflow-x: auto">
+              <svg
+                class="staff"
+                id="staff"
+                viewBox="0 0 640 200"
+                role="img"
+                aria-label="Bass clef practice notes"
+              ></svg>
+            </div>
+            <p
+              id="songWords"
+              class="note"
+              style="min-height: 24px; margin-top: 0"
+            ></p>
+          </div>
+          <div class="footer">
+            <span id="stats">0 phrases completed</span
+            ><span>Practice, without the pressure.</span>
+          </div>
+        </section>
+        <aside>
+          <div class="card">
+            <h2>Make it your practice</h2>
+            <label for="mode">Exercise</label
+            ><select id="mode">
+              <option value="hymn" selected>
+                Come, Thou Fount · SATB hymn
+              </option>
+              <option value="step">Stepwise melodies</option>
+              <option value="single">Single notes</option>
+              <option value="leap">Small leaps</option>
+            </select>
+            <div id="songSettings">
+              <label for="section">Hymn section</label
+              ><select id="section">
+                <option value="0">1 · Come, Thou Fount / Here I raise</option>
+                <option value="1">2 · Streams of mercy / And I hope</option>
+                <option value="2">3 · Teach me some / Jesus sought me</option>
+                <option value="3">
+                  4 · Praise the mount / He, to rescue
+                </option></select
+              ><label for="verse">Words</label
+              ><select id="verse">
+                <option value="0">Verse 1 · Come, Thou Fount</option>
+                <option value="1" selected>
+                  Verse 2 · Here I raise my Ebenezer
+                </option>
+              </select>
+              <p class="note">
+                NETTLETON · E♭ major · 3/4<br />Public-domain four-part hymn.
+                Reference playback keeps the written rhythm; singing practice
+                follows your pitch at your own pace.
+              </p>
+              <a
+                class="note"
+                href="https://library.timelesstruths.org/music/Come_Thou_Fount_of_Every_Blessing/"
+                target="_blank"
+                rel="noopener"
+                >View source score ↗</a
+              >
+            </div>
+            <label for="range">Comfortable range (generated exercises)</label
+            ><select id="range">
+              <option value="low">Lower bass · G2–E3</option>
+              <option value="mid" selected>Middle bass · C3–A3</option></select
+            ><label for="tolerance">Pitch tolerance</label
+            ><select id="tolerance">
+              <option value="50" selected>Getting started · ±50 cents</option>
+              <option value="30">More precise · ±30 cents</option></select
+            ><label><input type="checkbox" id="names" /> Show note names</label>
+            <div
+              style="
+                border-top: 1px solid var(--line);
+                margin-top: 22px;
+                padding-top: 2px;
+              "
+            >
+              <label
+                style="font-size: 15px; color: var(--ink); font-weight: 600"
+                ><input type="checkbox" id="harmony" /> Other voices</label
+              >
+              <p class="note" style="margin: 6px 0">
+                Hear the soprano, alto, and tenor from the hymn score while you
+                sing bass. Generated exercises use two higher harmony parts.
+                Toggle anytime.
+              </p>
+              <label
+                ><input type="checkbox" id="speakerMode" checked /> Using
+                speakers</label
+              >
+              <p class="note">
+                Requests echo cancellation to reduce the game’s sound in your
+                microphone. Keep speaker volume low. Headphones give more
+                reliable pitch feedback.
+              </p>
+              <div class="note" id="echoStatus" role="status">
+                Speaker mode · echo cancellation requested at microphone start
+              </div>
+              <label for="harmonyVolume">Other voices volume</label
+              ><input
+                id="harmonyVolume"
+                type="range"
+                min="0"
+                max="100"
+                value="15"
+                style="width: 100%; accent-color: var(--green)"
+              />
+              <div class="note" id="harmonyStatus" role="status">
+                Off · bass practice on your own
+              </div>
+              <p class="note">
+                Speaker mode is a best-effort aid: overlapping voices may still
+                confuse pitch feedback. If that happens, lower the harmony
+                volume or switch Other voices off. The harmony follows your
+                progress; there is no fixed tempo yet.
+              </p>
+            </div>
+            <p class="note">
+              A semitone is 100 cents. Use headphones so the microphone hears
+              your voice clearly.
+            </p>
+          </div>
+          <ol class="steps">
+            <li>Listen to your starting pitch.</li>
+            <li>Sing the highlighted note and hold it steadily.</li>
+            <li>Follow the phrase as the highlight moves.</li>
+          </ol>
+          <p class="note">
+            Audio is analyzed in your browser and is not uploaded. Microphone
+            access begins only when you press Start singing. Generated exercises
+            use original practice phrases; the hymn uses the linked
+            public-domain score.
+          </p>
+        </aside>
+      </div>
+    </main>
+    <div
+      id="playbackBar"
+      hidden
+      style="
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        background: #fffef9;
+        box-shadow: 0 4px 30px #203e3630;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px 18px;
+        max-width: 95vw;
+      "
+    >
+      <span id="playbackStatus" style="font-size: 13px; white-space: nowrap"
+        >Playing hymn</span
+      ><button id="nextPlayback" style="white-space: nowrap">
+        Next section →</button
+      ><button id="pausePlayback" style="white-space: nowrap">Ⅱ Pause</button
+      ><button id="stopPlayback" class="primary" style="white-space: nowrap">
+        ■ Stop playback
+      </button>
+    </div>
+    <script src="hymn.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "bassline-sight-singing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser-based bass sight-singing and SATB hymn rehearsal",
+  "scripts": {
+    "check": "node scripts/check.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

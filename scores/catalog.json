@@ -1,0 +1,37 @@
+{
+  "scores": [
+    {
+      "id": "come-thou-fount",
+      "title": "Come, Thou Fount of Every Blessing",
+      "tune": "NETTLETON",
+      "file": "come-thou-fount.musicxml",
+      "parts": [
+        "Soprano",
+        "Alto",
+        "Tenor",
+        "Bass"
+      ],
+      "key": "E-flat major",
+      "source": "https://library.timelesstruths.org/music/Come_Thou_Fount_of_Every_Blessing/",
+      "copyright_status": "Public domain as identified by the source",
+      "playable_in_app": true
+    },
+    {
+      "id": "all-creatures",
+      "title": "All Creatures of Our God and King",
+      "tune": "LASST UNS ERFREUEN",
+      "file": "all-creatures.musicxml",
+      "parts": [
+        "Soprano",
+        "Alto",
+        "Tenor",
+        "Bass"
+      ],
+      "key": "D major",
+      "source": "https://library.timelesstruths.org/music/All_Creatures_of_Our_God_and_King/",
+      "copyright_status": "Public domain as identified by the source (harmonization by Vaughan Williams, published 1906)",
+      "playable_in_app": false
+    }
+  ],
+  "note": "This catalog documents the score folder; automatic catalog loading and a general MusicXML importer are not implemented."
+}
