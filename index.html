@@ -72,39 +72,17 @@
             <h2>Make it your practice</h2>
             <label for="mode">Exercise</label
             ><select id="mode">
-              <option value="hymn" selected>
-                Come, Thou Fount · SATB hymn
-              </option>
+              <option value="hymn" selected>Hymns · four-part</option>
               <option value="step">Stepwise melodies</option>
               <option value="single">Single notes</option>
               <option value="leap">Small leaps</option>
             </select>
             <div id="songSettings">
-              <label for="section">Hymn section</label
-              ><select id="section">
-                <option value="0">1 · Come, Thou Fount / Here I raise</option>
-                <option value="1">2 · Streams of mercy / And I hope</option>
-                <option value="2">3 · Teach me some / Jesus sought me</option>
-                <option value="3">
-                  4 · Praise the mount / He, to rescue
-                </option></select
-              ><label for="verse">Words</label
-              ><select id="verse">
-                <option value="0">Verse 1 · Come, Thou Fount</option>
-                <option value="1" selected>
-                  Verse 2 · Here I raise my Ebenezer
-                </option>
-              </select>
-              <p class="note">
-                NETTLETON · E♭ major · 3/4<br />Public-domain four-part hymn.
-                Reference playback keeps the written rhythm; singing practice
-                follows your pitch at your own pace.
-              </p>
-              <a
-                class="note"
-                href="https://library.timelesstruths.org/music/Come_Thou_Fount_of_Every_Blessing/"
-                target="_blank"
-                rel="noopener"
+              <label for="song">Hymn</label><select id="song"></select>
+              <label for="section">Hymn section</label><select id="section"></select>
+              <label for="verse">Words</label><select id="verse"></select>
+              <p class="note" id="songInfo"></p>
+              <a class="note" id="songSource" href="#" target="_blank" rel="noopener"
                 >View source score ↗</a
               >
             </div>

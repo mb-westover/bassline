@@ -1,6 +1,8 @@
 # Bassline
 
-A browser-based bass sight-singing and four-part hymn rehearsal app. This is a standalone snapshot of the application developed in this conversation, including the corrected section-navigation behavior.
+A browser-based app for learning to sing a part in four-part hymns: follow the score, hear the other voices, and get live feedback on your pitch from the microphone.
+
+**Use it:** <https://mb-westover.github.io/bassline/>. Link straight to a hymn with `?song=all-creatures`.
 
 ## Run locally
 
@@ -12,12 +14,12 @@ python3 -m http.server 8000 --bind 127.0.0.1
 
 Open **http://localhost:8000** in a current browser. Allow microphone access when you choose **Start singing**. Use localhost rather than opening `index.html` directly; microphone access requires a secure context (localhost is allowed). A hosted copy should use HTTPS.
 
-The app runs entirely in the browser. The exported app does not require ChatGPT sign-in, an API key, a database, or a backend. Its optional web fonts come from Google Fonts; system-font fallbacks are provided.
+The app runs entirely in the browser, with no account, API key, database or backend. Its optional web fonts come from Google Fonts; system-font fallbacks are provided.
 
 ## Current features
 
-- Complete SATB score for **Come, Thou Fount of Every Blessing**, tune NETTLETON, E-flat major.
-- Two staves: soprano and alto in treble clef; tenor and bass in bass clef. Lyric syllables align with the shared note timeline. Two verses are available, including the Ebenezer verse.
+- Complete SATB scores for **Come, Thou Fount of Every Blessing** (NETTLETON, E-flat major) and **All Creatures of Our God and King** (LASST UNS ERFREUEN, D major), chosen from a menu.
+- Two staves: soprano and alto in treble clef; tenor and bass in bass clef. Lyric syllables align with the shared note timeline. Every verse in the source score is available.
 - Full-hymn playback, a moving playhead, and scrolling between score systems.
 - Click a note, lyric, or position in the score to jump there and continue playback.
 - Spacebar pauses and resumes at the saved musical position. Floating Pause/Resume and Stop controls are also available.
@@ -26,7 +28,7 @@ The app runs entirely in the browser. The exported app does not require ChatGPT 
 - Microphone pitch feedback with configurable tolerance, generated single-note/stepwise/leap exercises, and a browser-local count of completed phrases.
 - Speaker mode requests browser echo cancellation. Microphone audio is analyzed locally and is not uploaded.
 
-This is pitch practice at your own pace, not rhythm grading. Playback is currently fixed at 0.65 seconds per quarter note. Audio uses synthesized tones, not recorded voices. Speaker-mode effectiveness depends on the browser, device, and room.
+This is pitch practice at your own pace, not rhythm grading. Each hymn has one fixed playback tempo, set in `scores/catalog.json`. Audio uses synthesized tones, not recorded voices. Speaker-mode effectiveness depends on the browser, device, and room.
 
 ## Project files
 
@@ -34,33 +36,27 @@ This is pitch practice at your own pace, not rhythm grading. Playback is current
 index.html                      Page structure and controls
 styles.css                      Visual styles
 app.js                          Score drawing, transport, audio, pitch feedback
-hymn.js                         Preconverted data for the bundled hymn
+hymn.js                         Generated data for the playable hymns
 scores/
-  come-thou-fount.musicxml       Original source score, with parts and lyrics
-  catalog.json                  Score metadata; not yet an app-loading mechanism
+  *.musicxml                    Original source scores, with parts and lyrics
+  catalog.json                  Each score's sections, tempo, source and rights
 scripts/
-  convert_nettleton.py           Score-specific converter that rebuilds hymn.js
+  convert_scores.py             Rebuilds hymn.js from the catalog
   check.mjs                     Dependency-free application checks
   README.md                     Converter notes
 docs/
   DEVELOPMENT.md                Architecture, limitations, and next steps
-NOTICE.md                       Score source and provenance
+NOTICE.md                       Score sources and provenance
 package.json                    Optional check command; no dependencies
 ```
 
-## Adding music
+## Adding a hymn
 
-Put MusicXML files (`.musicxml` or `.xml`, or compressed `.mxl`) in `scores/`, using descriptive names. Record their titles, parts, source URLs, and usage rights in `scores/catalog.json`.
+1. Put the MusicXML file in `scores/`. It must be a two-staff, four-part score: soprano and alto on the treble staff, tenor and bass on the bass staff. Compressed `.mxl` files need unzipping first.
+2. Add an entry to `scores/catalog.json` with its title, source, rights, tempo, and where each section starts (in quarter notes), and set `playable_in_app` to `true`. About 12 quarter notes per section keeps the lyrics readable.
+3. Run `python3 scripts/convert_scores.py`, record the source in `NOTICE.md`, and run the checks below.
 
-**Adding a file to that folder does not yet make it playable.** The current application loads only `hymn.js` and contains score-specific assumptions. A general MusicXML importer, compressed-file support, score selector, and standard notation renderer remain to be implemented. The existing Python converter is specific to this NETTLETON score; it is not a general import tool.
-
-To rebuild the bundled data from its included source score:
-
-```sh
-python3 scripts/convert_nettleton.py
-```
-
-For the next development phase, see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+The converter separates the parts on each staff by pitch, so check a new score by ear: voices that cross will swap. Other layouts, such as open-score files with one staff per voice or solo pieces, aren't supported yet. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Checks
 
@@ -72,9 +68,3 @@ node scripts/check.mjs
 ```
 
 No `npm install` is required. The checks use a simulated browser/audio environment to verify score data and transport behavior; they do not replace trying the microphone on real hardware.
-
-## Put it in GitHub
-
-Unzip this project and copy its contents into your chosen repository (or a subfolder such as `apps/bassline`). Commit and push through your normal Git workflow. The export contains no hosting identity, Git history, deployment credentials, or account configuration.
-
-You can also host these static files with any HTTPS static host. No service-specific configuration is required by the app. Choose your preferred project license before distributing the application; the bundled score's source attribution is in `NOTICE.md`.

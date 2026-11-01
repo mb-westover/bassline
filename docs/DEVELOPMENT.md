@@ -6,13 +6,13 @@ This prototype is buildless: `index.html` loads `styles.css`, then `hymn.js`, th
 
 ### Score data
 
-`HYMN.sections` contains four 12-quarter-note sections. Each has `tracks` in **soprano, alto, tenor, bass** order and two lyric arrays. Notes carry start time `t`, duration `d` (quarter-note units), MIDI pitch `m`, written step/alter/octave, and source measure number. Lyrics carry `t`, `text`, and a hyphenation flag.
+`HYMNS` in `hymn.js` holds every playable hymn; `HYMN` is the one selected. Each hymn has its key, meter, tempo (`seconds_per_quarter`), `total_beats` and `sections`. A section has its `start` and `beats` (in quarter notes), `bars`, `tracks` in **soprano, alto, tenor, bass** order, and one lyric array per verse. Notes carry start time `t` and duration `d` relative to their section (quarter-note units), MIDI pitch `m`, written step/alter/octave, source measure number and any printed accidental `acc`. Lyrics carry `t`, `text`, and a hyphenation flag.
 
-This is a prototype-specific data model, not a substitute for MusicXML. The bundled conversion reconstructs upper/lower lines from two choral staves using sounding pitch order. That is not a reliable strategy for arbitrary scores with voice crossings, rests, ties, multiple simultaneous parts, or differing lyric rhythms.
+This is a prototype-specific data model, not a substitute for MusicXML. `scripts/convert_scores.py` reconstructs upper/lower lines from two choral staves using sounding pitch order, and joins tied notes. That is not a reliable strategy for arbitrary scores with voice crossings, one part resting while another sings alone, more than four parts, or differing lyric rhythms.
 
 ### Display
 
-`drawHymn`, `drawHymnSystem`, and `scoreX` draw the complete hymn, map musical time to horizontal score positions, and place lyric syllables on the same timeline. Soprano/tenor stems point up; alto/bass stems point down. The custom renderer does not implement all engraving rules, ties, beams, accidentals, or complex MusicXML layout features.
+`drawHymn`, `drawHymnSystem`, and `scoreX` draw the complete hymn, map musical time to horizontal score positions, and place lyric syllables on the same timeline. Soprano/tenor stems point up; alto/bass stems point down. The custom renderer draws key signatures and printed accidentals, but does not implement ties, beams, rests, or complex MusicXML layout features.
 
 ### Playback and navigation
 
@@ -30,7 +30,7 @@ Speaker mode requests `echoCancellation` through `getUserMedia`, and reports the
 
 ### State and storage
 
-The app stores only its completed-phrase count in `localStorage` under `bassline-completed`. There is no account system or server-side persistence. The `scores/catalog.json` file is informational and is not read by the app yet.
+The app stores only its completed-phrase count in `localStorage` under `bassline-completed`. There is no account system or server-side persistence. `scores/catalog.json` is read by the converter, not by the app.
 
 ## Suggested next phase: general MusicXML support
 
@@ -46,4 +46,4 @@ MusicXML references:
 - https://www.w3.org/2021/06/musicxml40/musicxml-reference/elements/lyric/
 - https://github.com/opensheetmusicdisplay/opensheetmusicdisplay
 
-No general MusicXML import or rendering library has been added to this export. It is the portable, working prototype plus its source score and development materials.
+No general MusicXML import or rendering library has been added yet. The practice target is always the bass line; a score without one, such as a duet, needs a target-part selector first.

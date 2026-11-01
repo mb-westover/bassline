@@ -58,6 +58,7 @@ const sandbox = {
   localStorage: { getItem() { return 0; } },
   cancelAnimationFrame() {}, requestAnimationFrame() { return 1; },
   setTimeout() { return 1; }, clearTimeout() {}, AudioContext: AudioContextMock,
+  URLSearchParams,
 };
 vm.createContext(sandbox);
 vm.runInContext(data + '\n' + app, sandbox);
@@ -111,4 +112,40 @@ element('mode').value = 'step';
 element('mode').onchange();
 assert.equal(run('notes.length'), 4);
 assert.equal(element('staff').viewBox, '0 0 640 200');
-console.log('Passed: assets, full score and lyrics, playback, seeking, exact pause/resume, section navigation, cleanup, and exercise fallback.');
+
+// Second hymn: different length, section count, meter, key and tempo.
+element('mode').value = 'hymn';
+element('mode').onchange();
+element('song').value = '1';
+element('song').onchange();
+assert.equal(run('HYMN.id'), 'all-creatures');
+assert.equal(run('HYMN.sections.length'), 8);
+assert.equal(run('HYMN.total_beats'), 96);
+assert.equal((element('staff').innerHTML.match(/data-section=/g) || []).length, 8);
+assert.equal(element('staff').viewBox, '0 0 1000 3120');
+assert(element('staff').innerHTML.includes('♯'), 'D major key signature');
+assert(element('staff').innerHTML.includes('Section 1 · D major · 3/2'));
+assert.equal(run('noteName(66)'), 'F♯4');
+const songStart = audio.currentTime;
+await run('play(true)');
+audio.currentTime = songStart + 9;
+run('pauseReference()');
+assert(Math.abs(run('pausedBeat') - (9 - 0.06) / 0.45) < 1e-9, 'tempo comes from the hymn');
+await run('seekScore(61)');
+assert.equal(run('playback.section'), 5);
+assert.equal(run('playback.t'), 1);
+run('stopReference(false)');
+assert.equal(run('sectionAtBeat(95.9)'), 7);
+await run('chooseSection(7)');
+assert.equal(element('section').value, '7');
+await element('next').onclick();
+assert.equal(element('section').value, '0');
+// Refrain words printed under one verse appear under every verse.
+for (let verse = 0; verse < 5; verse++)
+  assert(run(`HYMN.sections[5].lyrics[${verse}].some((l) => l.text === 'praise')`));
+element('song').value = '0';
+element('song').onchange();
+assert.equal(run('HYMN.id'), 'come-thou-fount');
+assert.equal(element('verse').value, '1');
+assert.equal(run('noteName(63)'), 'E♭4');
+console.log('Passed: assets, full score and lyrics, playback, seeking, exact pause/resume, section navigation, cleanup, exercise fallback, and switching hymns.');

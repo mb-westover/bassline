@@ -1,17 +1,11 @@
 # Included scripts
 
-`convert_nettleton.py` rebuilds `hymn.js` from the included MusicXML using only Python's standard library. Run it from any working directory:
+`convert_scores.py` rebuilds `hymn.js` from every score marked `playable_in_app` in `scores/catalog.json`, using only Python's standard library. Run it from any working directory:
 
 ```sh
-python3 scripts/convert_nettleton.py
+python3 scripts/convert_scores.py
 ```
 
-Optional arguments:
+It expects two-staff, four-part scores and reads the upper and lower line of each staff by pitch. Do not treat it as a general MusicXML parser.
 
-```sh
-python3 scripts/convert_nettleton.py scores/come-thou-fount.musicxml --output /tmp/hymn.js
-```
-
-The converter expects the bundled two-staff, 48-beat score and derives four pitch-ordered lines. It deliberately retains the prototype's assumptions and first two lyric verses. Do not treat it as a general MusicXML parser.
-
-`check.mjs` uses Node's standard library only. It checks data, script parsing, and key transport interactions in a simulated DOM/Web Audio environment. Real browser/microphone verification is still needed after substantive changes.
+`check.mjs` uses Node's standard library only. It checks data, script parsing, key transport interactions and switching between hymns in a simulated DOM/Web Audio environment. Real browser/microphone verification is still needed after substantive changes.

@@ -22,13 +22,45 @@ let playback = { active: false, section: 0, t: 0 },
   referenceRun = 0,
   pausedBeat = null,
   referenceClock = null;
+const FLAT_NAMES = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"],
+  SHARP_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 const noteName = (m) =>
-  ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"][
-    ((m % 12) + 12) % 12
-  ] +
+  (isHymn() && HYMN.fifths > 0 ? SHARP_NAMES : FLAT_NAMES)[((m % 12) + 12) % 12] +
   (Math.floor(m / 12) - 1);
 const freq = (m) => 440 * 2 ** ((m - 69) / 12);
 const isHymn = () => $("mode").value === "hymn";
+// Beats are quarter notes, counted from the start of the hymn.
+const secondsPerBeat = () => HYMN.seconds_per_quarter;
+const lastBeat = () => HYMN.total_beats - 0.001;
+const sectionCount = () => HYMN.sections.length;
+function sectionAtBeat(beat) {
+  let i = sectionCount() - 1;
+  while (i > 0 && HYMN.sections[i].start > beat) i--;
+  return i;
+}
+function sectionStart(i) {
+  return HYMN.sections[i].start;
+}
+// Key signature positions, as distance above the bottom staff line, treble clef.
+// The bass clef sits one staff-line pair lower.
+const KEY_SHARPS = [48, 30, 54, 36, 18, 42, 24],
+  KEY_FLATS = [24, 42, 18, 36, 12, 30, 6];
+function keySignature(bottom, text) {
+  const count = Math.abs(HYMN.fifths),
+    positions = HYMN.fifths > 0 ? KEY_SHARPS : KEY_FLATS,
+    shift = bottom === 112 ? 0 : 12;
+  let out = "";
+  for (let j = 0; j < count; j++)
+    out += text(
+      85 + j * 13,
+      bottom - positions[j] + shift + 4,
+      HYMN.fifths > 0 ? "♯" : "♭",
+      HYMN.fifths > 0 ? 22 : 26,
+      "#203e36",
+      'font-family="serif"',
+    );
+  return out;
+}
 function songSection() {
   return HYMN.sections[Number($("section").value)];
 }
@@ -121,7 +153,7 @@ function scoreX(sec) {
     times = [
       ...new Set([
         0,
-        12,
+        sec.beats,
         ...sec.tracks.flatMap((tr) => tr.map((n) => n.t)),
         ...ls.map((l) => l.t),
       ]),
@@ -156,7 +188,7 @@ function scoreX(sec) {
 }
 function drawHymnSystem(sec, sectionIndex) {
   const bass = sec.tracks[3],
-    win = { start: 0, end: 12, bass },
+    win = { start: 0, end: sec.beats, bass },
     activeSystem =
       (playback.active ? playback.section : Number($("section").value)) ===
       sectionIndex,
@@ -176,7 +208,7 @@ function drawHymnSystem(sec, sectionIndex) {
   out += text(
     970,
     22,
-    "Section " + (sectionIndex + 1) + " · E♭ major · 3/4",
+    "Section " + (sectionIndex + 1) + " · " + HYMN.key + " · " + HYMN.meter,
     12,
     "#71776e",
     'text-anchor="end"',
@@ -195,31 +227,27 @@ function drawHymnSystem(sec, sectionIndex) {
       "#203e36",
       'font-family="serif"',
     );
-    const ys =
-      bottom === 112
-        ? [bottom - 24, bottom - 42, bottom - 18]
-        : [bottom - 12, bottom - 30, bottom - 6];
-    ys.forEach(
-      (y, j) =>
-        (out += text(
-          85 + j * 13,
-          y + 4,
-          "♭",
-          26,
-          "#203e36",
-          'font-family="serif"',
-        )),
+    out += keySignature(bottom, text);
+    out += text(
+      134,
+      bottom - 28,
+      HYMN.meter_top,
+      23,
+      "#203e36",
+      'font-family="serif"',
     );
-    out += text(134, bottom - 28, "3", 23, "#203e36", 'font-family="serif"');
-    out += text(134, bottom - 5, "4", 23, "#203e36", 'font-family="serif"');
+    out += text(
+      134,
+      bottom - 5,
+      HYMN.meter_bottom,
+      23,
+      "#203e36",
+      'font-family="serif"',
+    );
   }
   out +=
     '<path d="M 16 64 L 10 64 L 10 314 L 16 314" stroke="#203e36" fill="none"/>';
-  const measures = new Map();
-  sec.tracks[3].forEach((n) => {
-    if (!measures.has(n.measure)) measures.set(n.measure, n.t);
-  });
-  for (const [bar, t] of measures) {
+  for (const { measure: bar, t } of sec.bars) {
     if (t >= win.start && t < win.end) {
       const x = xFor(t);
       out += text(x, 45, "bar " + bar, 10, "#71776e", 'text-anchor="middle"');
@@ -261,6 +289,8 @@ function drawHymnSystem(sec, sectionIndex) {
           out += `<line x1="${x - 14}" y1="${ly}" x2="${x + 14}" y2="${ly}" stroke="${color}"/>`;
         for (let ly = bottom - 60; ly >= y; ly -= 12)
           out += `<line x1="${x - 14}" y1="${ly}" x2="${x + 14}" y2="${ly}" stroke="${color}"/>`;
+        if (n.acc && n.t >= win.start)
+          out += text(x - 19, y + 6, n.acc, 18, color, 'font-family="serif"');
         out += `<ellipse data-part="${v}" data-time="${n.t}" cx="${x}" cy="${y}" rx="8" ry="5.5" transform="rotate(-18 ${x} ${y})" fill="${dur >= 2 ? "#fffef9" : color}" stroke="${color}" stroke-width="1.7"/><line x1="${stemX}" y1="${y}" x2="${stemX}" y2="${tip}" stroke="${color}" stroke-width="1.7"/>`;
         if (dur < 1) {
           let dir = up ? 1 : -1;
@@ -297,17 +327,17 @@ function drawHymnSystem(sec, sectionIndex) {
 }
 function drawHymn() {
   const out = HYMN.sections.map((sec, i) => drawHymnSystem(sec, i)).join("");
-  $("staff").setAttribute("viewBox", "0 0 1000 1560");
+  $("staff").setAttribute("viewBox", `0 0 1000 ${sectionCount() * 390}`);
   $("staff").style.height = "auto";
   $("staff").style.minWidth = "900px";
   $("staff").style.cursor = "pointer";
   $("staff").innerHTML = out;
   $("staff").setAttribute(
     "aria-label",
-    "Complete four-part hymn score, all four sections. Soprano and alto share the treble clef; tenor and bass share the bass clef. Selected verse syllables align with every part. Green marks your current bass note.",
+    "Complete four-part hymn score, every section. Soprano and alto share the treble clef; tenor and bass share the bass clef. Selected verse syllables align with every part. Green marks your current bass note.",
   );
   $("progress").textContent = playback.active
-    ? `${playback.paused ? "Paused ·" : "Playing"} section ${playback.section + 1} of 4`
+    ? `${playback.paused ? "Paused ·" : "Playing"} section ${playback.section + 1} of ${sectionCount()}`
     : roundFinished
       ? "Section complete"
       : `Section ${Number($("section").value) + 1} · bass note ${index + 1} of ${notes.length}`;
@@ -317,6 +347,27 @@ function drawHymn() {
     " · click a note or lyric to jump. Space pauses/resumes. Soprano/tenor stems up; alto/bass stems down.";
 }
 
+function chooseSong(i) {
+  stopReference(false);
+  HYMN = HYMNS[i] ?? HYMNS[0];
+  $("song").value = String(HYMNS.indexOf(HYMN));
+  $("section").innerHTML = HYMN.sections
+    .map(
+      (s, n) =>
+        `<option value="${n}">${n + 1} · ${escapeScore(s.title)}</option>`,
+    )
+    .join("");
+  $("section").value = "0";
+  $("verse").innerHTML = HYMN.verses
+    .map((v, n) => `<option value="${n}">${escapeScore(v)}</option>`)
+    .join("");
+  $("verse").value = String(HYMN.default_verse);
+  $("songInfo").textContent =
+    `${HYMN.tune} · ${HYMN.key} · ${HYMN.meter}. Public-domain four-part hymn. ` +
+    "Reference playback keeps the written rhythm; singing practice follows your pitch at your own pace.";
+  $("songSource").href = HYMN.source;
+  fresh();
+}
 function say(a, b) {
   $("message").textContent = a;
   $("detail").textContent = b;
@@ -333,11 +384,11 @@ function fresh() {
   if (isHymn()) {
     notes = songSection().tracks[3].map((e) => e.m);
     $("exercise").textContent =
-      "Come, Thou Fount · section " + (Number($("section").value) + 1);
+      HYMN.short_title + " · section " + (Number($("section").value) + 1);
     $("next").textContent = "Next section →";
     $("replay").textContent = referenceLabel();
     $("hint").textContent =
-      "Full hymn shown below. Sing downward-stem bass notes on the lower staff. Choose a practice section in settings; all four sections remain visible.";
+      "Full hymn shown below. Sing downward-stem bass notes on the lower staff. Choose a practice section in settings; the whole hymn stays visible.";
   } else {
     const pool =
       $("range").value === "low" ? scale.slice(0, 6) : scale.slice(3);
@@ -428,7 +479,7 @@ async function play(all, startBeat = 0) {
     stopReference();
     return;
   }
-  startBeat = Math.max(0, Math.min(47.999, Number(startBeat) || 0));
+  startBeat = Math.max(0, Math.min(lastBeat(), Number(startBeat) || 0));
   const token = ++referenceRun;
   playing = true;
   try {
@@ -449,14 +500,14 @@ async function play(all, startBeat = 0) {
       HYMN.sections.forEach((sec, si) =>
         sec.tracks.forEach((track, v) =>
           track.forEach((n) => {
-            const onset = si * 12 + n.t,
+            const onset = sec.start + n.t,
               end = onset + n.d;
             if (end > startBeat) {
               const from = Math.max(onset, startBeat);
               tone(
                 n.m,
-                startTime + (from - startBeat) * 0.65,
-                (end - from) * 0.65 * 0.96,
+                startTime + (from - startBeat) * secondsPerBeat(),
+                (end - from) * secondsPerBeat() * 0.96,
                 v === 3 ? 0.16 : 0.12,
                 v !== 3,
               );
@@ -464,11 +515,12 @@ async function play(all, startBeat = 0) {
           }),
         ),
       );
-      seconds = (48 - startBeat) * 0.65;
+      seconds = (HYMN.total_beats - startBeat) * secondsPerBeat();
+      const firstSection = sectionAtBeat(startBeat);
       playback = {
         active: true,
-        section: Math.floor(startBeat / 12),
-        t: startBeat % 12,
+        section: firstSection,
+        t: startBeat - sectionStart(firstSection),
       };
       $("playbackBar").hidden = false;
       $("pausePlayback").textContent = "Ⅱ Pause";
@@ -477,8 +529,9 @@ async function play(all, startBeat = 0) {
       function animate() {
         if (!playing || token !== referenceRun) return;
         const beat =
-          startBeat + Math.max(0, (ctx.currentTime - startTime) / 0.65);
-        if (beat >= 48) {
+          startBeat +
+          Math.max(0, (ctx.currentTime - startTime) / secondsPerBeat());
+        if (beat >= HYMN.total_beats) {
           stopReference(false);
           say(
             "Hymn playback complete.",
@@ -486,8 +539,8 @@ async function play(all, startBeat = 0) {
           );
           return;
         }
-        playback.section = Math.min(3, Math.floor(beat / 12));
-        playback.t = beat - playback.section * 12;
+        playback.section = sectionAtBeat(beat);
+        playback.t = beat - sectionStart(playback.section);
         const bass = HYMN.sections[playback.section].tracks[3],
           ni = bass.findIndex(
             (n) => n.t <= playback.t && n.t + n.d > playback.t,
@@ -504,7 +557,7 @@ async function play(all, startBeat = 0) {
             scoreX(HYMN.sections[playback.section])(playback.t) - 16,
           );
         $("playbackStatus").textContent =
-          "Playing section " + (playback.section + 1) + " of 4";
+          "Playing section " + (playback.section + 1) + " of " + sectionCount();
         if (lastSection !== playback.section) {
           $("staff")
             .querySelector('[data-section="' + playback.section + '"]')
@@ -551,15 +604,16 @@ function referenceLabel() {
 }
 function freezeReference(beat) {
   pausedBeat = beat;
+  const section = sectionAtBeat(beat);
   playback = {
     active: true,
     paused: true,
-    section: Math.floor(beat / 12),
-    t: beat % 12,
+    section,
+    t: beat - sectionStart(section),
   };
   $("playbackBar").hidden = false;
   $("playbackStatus").textContent =
-    "Paused · section " + (playback.section + 1) + " of 4";
+    "Paused · section " + (playback.section + 1) + " of " + sectionCount();
   $("pausePlayback").textContent = "▶ Resume";
   $("replay").textContent = "▶ Resume playback";
   draw();
@@ -567,9 +621,12 @@ function freezeReference(beat) {
 function pauseReference() {
   if (!playing || !playback.active || !referenceClock) return;
   const beat = Math.min(
-    47.999,
+    lastBeat(),
     referenceClock.startBeat +
-      Math.max(0, (ctx.currentTime - referenceClock.startTime) / 0.65),
+      Math.max(
+        0,
+        (ctx.currentTime - referenceClock.startTime) / secondsPerBeat(),
+      ),
   );
   stopReference(false);
   freezeReference(beat);
@@ -581,13 +638,13 @@ function pauseReference() {
 async function chooseSection(section) {
   const wasPlaying = playing && playback.active,
     wasPaused = pausedBeat !== null;
-  $("section").value = String((section + 4) % 4);
+  $("section").value = String((section + sectionCount()) % sectionCount());
   fresh();
   const selected = Number($("section").value);
   if (wasPlaying) {
-    await play(true, selected * 12);
+    await play(true, sectionStart(selected));
   } else if (wasPaused) {
-    freezeReference(selected * 12);
+    freezeReference(sectionStart(selected));
     say(
       "Paused at section " + (selected + 1) + ".",
       "Press Space or Resume to continue from the start of this section.",
@@ -612,7 +669,7 @@ function nextSection() {
   const current = playback.active
     ? playback.section
     : Number($("section").value);
-  return chooseSection((current + 1) % 4);
+  return chooseSection((current + 1) % sectionCount());
 }
 async function togglePause() {
   if (running || !isHymn()) return;
@@ -620,7 +677,7 @@ async function togglePause() {
     const beat = pausedBeat;
     await play(true, beat);
   } else if (playing) pauseReference();
-  else await play(true, Number($("section").value) * 12);
+  else await play(true, sectionStart(Number($("section").value)));
 }
 function playbackKey(event) {
   if (
@@ -643,7 +700,7 @@ function nearestScoreBeat(section, x) {
     xFor = scoreX(sec),
     times = [...new Set(sec.tracks.flatMap((track) => track.map((n) => n.t)))];
   return (
-    section * 12 +
+    sectionStart(section) +
     times.reduce(
       (best, t) =>
         Math.abs(xFor(t) - x) < Math.abs(xFor(best) - x) ? t : best,
@@ -669,7 +726,7 @@ function scoreClick(event) {
       $("staff").getScreenCTM().inverse(),
     ),
     section = Math.floor(point.y / 390);
-  if (section < 0 || section >= 4 || point.x < 155 || point.x > 980) return;
+  if (section < 0 || section >= sectionCount() || point.x < 155 || point.x > 980) return;
   const direct = event.target.closest("[data-time], [data-lyric-time]"),
     time = direct
       ? Number(
@@ -678,7 +735,9 @@ function scoreClick(event) {
         )
       : null,
     beat =
-      time !== null ? section * 12 + time : nearestScoreBeat(section, point.x);
+      time !== null
+        ? sectionStart(section) + time
+        : nearestScoreBeat(section, point.x);
   seekScore(beat);
 }
 function harmonyNotes(m) {
@@ -770,7 +829,7 @@ function syncHarmony() {
           () => {
             if (running && $("harmony").checked) soundHarmony(upperAt(t));
           },
-          (t - target.t) * 650,
+          (t - target.t) * secondsPerBeat() * 1000,
         ),
       ),
     );
@@ -945,7 +1004,7 @@ $("startNote").onclick = () => play(false);
 $("replay").onclick = () =>
   pausedBeat !== null
     ? togglePause()
-    : play(true, isHymn() ? Number($("section").value) * 12 : 0);
+    : play(true, isHymn() ? sectionStart(Number($("section").value)) : 0);
 $("pausePlayback").onclick = togglePause;
 document.addEventListener("keydown", playbackKey);
 $("stopPlayback").onclick = () => stopReference();
@@ -954,6 +1013,7 @@ $("next").onclick = nextSection;
 $("nextPlayback").onclick = nextSection;
 $("section").onchange = () => chooseSection(Number($("section").value));
 $("verse").onchange = draw;
+$("song").onchange = () => chooseSong(Number($("song").value));
 ["mode", "range"].forEach((id) => ($(id).onchange = fresh));
 $("names").onchange = draw;
 $("harmony").onchange = () => {
@@ -989,4 +1049,12 @@ try {
   done = Number(localStorage.getItem("bassline-completed")) || 0;
 } catch {}
 $("stats").textContent = done + " phrases completed";
-fresh();
+$("song").innerHTML = HYMNS.map(
+  (h, i) => `<option value="${i}">${escapeScore(h.title)}</option>`,
+).join("");
+// A link can open a particular hymn: index.html?song=all-creatures
+const linkedSong = HYMNS.findIndex(
+  (h) =>
+    h.id === new URLSearchParams(globalThis.location?.search ?? "").get("song"),
+);
+chooseSong(Math.max(0, linkedSong));

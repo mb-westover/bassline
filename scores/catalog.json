@@ -14,7 +14,23 @@
       "key": "E-flat major",
       "source": "https://library.timelesstruths.org/music/Come_Thou_Fount_of_Every_Blessing/",
       "copyright_status": "Public domain as identified by the source",
-      "playable_in_app": true
+      "playable_in_app": true,
+      "short_title": "Come, Thou Fount",
+      "key_label": "E♭ major",
+      "seconds_per_quarter": 0.65,
+      "default_verse": 1,
+      "section_starts": [
+        0,
+        12,
+        24,
+        36
+      ],
+      "section_titles": [
+        "Come, Thou Fount / Here I raise",
+        "Streams of mercy / And I hope",
+        "Teach me some / Jesus sought me",
+        "Praise the mount / He, to rescue"
+      ]
     },
     {
       "id": "all-creatures",
@@ -30,8 +46,38 @@
       "key": "D major",
       "source": "https://library.timelesstruths.org/music/All_Creatures_of_Our_God_and_King/",
       "copyright_status": "Public domain as identified by the source (harmonization by Vaughan Williams, published 1906)",
-      "playable_in_app": false
+      "playable_in_app": true,
+      "short_title": "All Creatures",
+      "key_label": "D major",
+      "seconds_per_quarter": 0.45,
+      "section_starts": [
+        0,
+        12,
+        24,
+        36,
+        48,
+        60,
+        72,
+        84
+      ],
+      "section_titles": [
+        "All creatures of our God",
+        "Lift up your voice",
+        "Alleluia! Alleluia!",
+        "Thou burning sun",
+        "Thou silver moon",
+        "Refrain: O praise Him!",
+        "Refrain: Alleluia!",
+        "Refrain: Alleluia! (ending)"
+      ],
+      "shared_lyrics": [
+        {
+          "number": "part1verse3",
+          "start": 60,
+          "end": 72
+        }
+      ]
     }
   ],
-  "note": "This catalog documents the score folder; automatic catalog loading and a general MusicXML importer are not implemented."
+  "note": "scripts/convert_scores.py reads this catalog and writes hymn.js for every score with playable_in_app true. Section starts are in quarter notes from the start of the score."
 }
